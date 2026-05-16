@@ -1,59 +1,267 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MOSLF Store Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+RESTful E-Commerce API built with Laravel 12 and PHP 8.2.
 
-## About Laravel
+This project is a backend system for an e-commerce platform focusing on scalability, security, maintainability, and real-world business logic such as cart synchronization, inventory tracking, and role-based access control.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Laravel 12
+- PHP 8.2
+- MySQL
+- Laravel Sanctum (Authentication)
+- Spatie Laravel Permission (RBAC)
+- PragmaRX Google2FA (Admin 2FA)
+- PHPUnit (Testing)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+# Project Overview
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+This backend is designed with a pragmatic layered architecture inspired by clean architecture principles, balancing simplicity and scalability.
 
-## Laravel Sponsors
+It avoids unnecessary abstraction in simple CRUD operations while introducing structured layers for complex business logic.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+# Architecture
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+HTTP Layer
+├── Controllers (HTTP handling only)
+├── Form Requests (Validation)
+└── API Resources (Response formatting)
 
-## Contributing
+Application Layer
+├── Services (Core business logic)
+├── Actions (Single-responsibility operations)
+└── DTOs (Data transfer where needed)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Domain Layer (lightweight)
+├── Enums
+├── Events
+└── Exceptions
 
-## Code of Conduct
+Infrastructure Layer
+├── Models
+├── Repositories (optional usage)
+└── Database (Migrations, Seeders)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+# Design Principles
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Separation of Concerns
 
-## License
+- Controllers only handle HTTP requests
+- Business logic lives in Services / Actions
+- Validation handled via Form Requests
+- API responses standardized using Resources
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Pragmatism over Over-Engineering
+
+- Simple CRUD stays simple
+- Complex flows (cart, inventory, orders) are structured
+- Avoids unnecessary design patterns when not needed
+
+---
+
+# Core Features
+
+## Authentication & Security
+
+- Token-based authentication (Laravel Sanctum)
+- Admin Two-Factor Authentication (TOTP)
+- Token revocation support
+- Rate limiting on auth endpoints
+- Role & Permission system (Spatie)
+- Protection against IDOR vulnerabilities
+
+## E-Commerce Core
+
+- Product catalog with slug-based routing
+- Product variations support
+- Wishlist system
+- Cart system (guest + authenticated users)
+- Automatic cart merging after login
+- Order management system
+
+## Inventory System
+
+- Stock tracking per product variation
+- Inventory movement history:
+    - IN
+    - OUT
+    - ADJUSTMENT
+- Consistent stock updates
+- Audit-friendly movement logs
+
+---
+
+# Admin Authentication Flow
+
+Login Request
+|
+|-- Regular User → Access Token issued immediately
+|
+|-- Admin User → Temporary Token issued
+|
+v
+Two-Factor Authentication (TOTP)
+|
+v
+Final Access Token Issued
+
+---
+
+# Cart System
+
+The cart system supports both guest and authenticated users.
+
+Key behaviors:
+
+- Guest carts persist until login
+- Automatic merging of guest + user cart after login
+- Quantity conflict resolution handled automatically
+- Inventory-safe updates to prevent over-ordering
+- Encapsulated in service layer for clean controller design
+
+---
+
+# Inventory System
+
+Designed for accuracy and traceability:
+
+- Stock tracked per product variant
+- Every stock change is logged as a movement record
+- Movement types:
+    - IN (restock)
+    - OUT (sales/order deduction)
+    - ADJUSTMENT (manual admin correction)
+- Event-driven and observer-based consistency where needed
+
+---
+
+# API Structure
+
+## Public Endpoints
+
+- GET `/api/products`
+- GET `/api/products/{product:slug}`
+- POST `/api/auth/register`
+- POST `/api/auth/login`
+
+## Cart Endpoints
+
+- GET `/api/cart`
+- POST `/api/cart`
+- PATCH `/api/cart/items/{variantId}`
+- DELETE `/api/cart/items/{variantId}`
+
+## User Endpoints
+
+- GET `/api/auth/me`
+- GET `/api/user/orders`
+- POST `/api/user/orders`
+- GET `/api/user/wishlist`
+- POST `/api/user/wishlist/{productId}`
+- DELETE `/api/user/wishlist/{productId}`
+
+## Admin API (/api/v1)
+
+Protected by:
+
+- Sanctum authentication
+- Role-Based Access Control (RBAC)
+- Admin middleware
+
+Includes:
+
+- Product CRUD
+- Inventory management
+- Stock movement tracking
+
+---
+
+# Authentication & Security Notes
+
+- All passwords are hashed using bcrypt
+- Sensitive routes are rate-limited
+- Admin actions require elevated permissions
+- Temporary tokens used for 2FA flow
+- Secure environment-based configuration
+
+---
+
+# Testing
+
+- PHPUnit feature tests
+- Cart synchronization edge cases
+- Inventory concurrency simulations
+- Manual end-to-end business flow testing
+
+---
+
+# Development Tools
+
+- Laravel Pint (code style formatting)
+- Laravel Pail (logging)
+- Laravel Sail (local development environment)
+- Faker (test data generation)
+
+---
+
+# Installation
+
+git clone https://github.com/ahmedeied701-crypto/MOSLF-STORE-BACKEND.git
+cd MOSLF-STORE-BACKEND
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
+
+---
+
+# Future Improvements
+
+- Queue-based order processing
+- Redis caching layer
+- Docker containerization
+- CI/CD pipeline
+- OpenAPI / Swagger documentation
+- Advanced inventory reservation system
+- Notification system (email & events)
+
+---
+
+# Project Goals
+
+This project was built to simulate real-world backend engineering challenges in e-commerce systems, including:
+
+- Scalable backend architecture
+- Secure authentication flows
+- Complex cart synchronization
+- Inventory consistency and tracking
+- Maintainable and modular design
+
+---
+
+# Final Notes
+
+This system is intentionally designed with a balance between simplicity and structure.
+
+It avoids over-engineering while still applying solid architectural separation where business complexity requires it.
+
+The goal is to remain:
+
+- Maintainable
+- Scalable
+- Production-oriented
+
+---
+
+# License
+
+This project is proprietary and confidential. Unauthorized copying, distribution, or modification is strictly prohibited.
