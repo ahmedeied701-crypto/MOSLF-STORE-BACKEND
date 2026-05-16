@@ -264,4 +264,8 @@ The goal is to remain:
 
 # License
 
-This project is proprietary and confidential. Unauthorized copying, distribution, or modification is strictly prohibited.
+This repository is source-available and provided for educational and portfolio purposes only.
+
+You may review and run the project locally for evaluation purposes.
+
+Commercial use, redistribution, sublicensing, or modification of the source code is prohibited without explicit permission from the author.
