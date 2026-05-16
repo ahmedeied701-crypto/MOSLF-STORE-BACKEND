@@ -136,7 +136,6 @@ class AuthController extends Controller
 
         return response($svgImage)
             ->header('Content-Type', 'image/svg+xml')
-            ->header('X-2FA-Secret', $user->google2fa_secret);
     }
 
     public function verify2FA(Request $request)
