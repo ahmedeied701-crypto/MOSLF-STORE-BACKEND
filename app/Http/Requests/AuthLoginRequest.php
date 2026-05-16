@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class AuthLoginRequest extends FormRequest
 {
@@ -23,7 +24,7 @@ class AuthLoginRequest extends FormRequest
     {
         return [
             'email' => 'required|email',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string',
 
             'guest_cart_id' => ['nullable', 'uuid'],
         ];
@@ -32,8 +33,6 @@ class AuthLoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.exists' => 'These credentials do not match our records.',
-
             'guest_cart_id.uuid' => 'The provided guest cart identifier is invalid.',
         ];
     }
